@@ -11,6 +11,7 @@ import {
 import { CreditBadge } from "@/components/credits/CreditBadge";
 import { BuyCreditsModal } from "@/components/credits/BuyCreditsModal";
 import { cn } from "@/lib/utils";
+import { getUser, clearAuth, type AuthUser } from "@/lib/auth";
 
 const NAV_ITEMS = [
   { href: "/builder", label: "Builder", icon: Bot, description: "Build forex bots with Cybabot" },
@@ -24,9 +25,15 @@ export function Navbar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isCreditsOpen, setIsCreditsOpen] = useState(false);
   const [isUserOpen, setIsUserOpen] = useState(false);
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
 
-  // Mock user state — replace with NextAuth session
-  const user = { name: "Demo User", email: "demo@example.com", credits: 1250, role: "user" };
+  useEffect(() => {
+    setAuthUser(getUser());
+  }, [pathname]);
+
+  const user = authUser
+    ? { name: authUser.name || authUser.email, email: authUser.email, credits: authUser.credits_balance, role: authUser.role }
+    : null;
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -105,57 +112,74 @@ export function Navbar() {
 
           {/* Right side: Credits + User */}
           <div className="flex items-center gap-3">
-            {/* Credit Badge */}
-            <CreditBadge
-              credits={user.credits}
-              onBuyClick={() => setIsCreditsOpen(true)}
-            />
+            {user ? (
+              <>
+                {/* Credit Badge */}
+                <CreditBadge
+                  credits={user.credits}
+                  onBuyClick={() => setIsCreditsOpen(true)}
+                />
 
-            {/* User Menu */}
-            <div className="relative">
-              <button
-                onClick={() => setIsUserOpen(!isUserOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass border border-white/10 hover:border-cyber-500/30 transition-all"
-              >
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyber-500 to-violet-500 flex items-center justify-center text-xs font-bold text-white">
-                  {user.name[0]}
-                </div>
-                <span className="hidden sm:block text-sm text-white/80">
-                  {user.name.split(" ")[0]}
-                </span>
-                <ChevronDown className={cn("w-3.5 h-3.5 text-muted-foreground transition-transform", isUserOpen && "rotate-180")} />
-              </button>
-
-              <AnimatePresence>
-                {isUserOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2 w-56 glass-card p-1 shadow-glass-lg"
-                    onMouseLeave={() => setIsUserOpen(false)}
+                {/* User Menu */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsUserOpen(!isUserOpen)}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass border border-white/10 hover:border-cyber-500/30 transition-all"
                   >
-                    <div className="px-3 py-2 border-b border-white/10 mb-1">
-                      <div className="text-sm font-medium text-white">{user.name}</div>
-                      <div className="text-xs text-muted-foreground">{user.email}</div>
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyber-500 to-violet-500 flex items-center justify-center text-xs font-bold text-white">
+                      {user.name[0].toUpperCase()}
                     </div>
+                    <span className="hidden sm:block text-sm text-white/80">
+                      {user.name.split(" ")[0]}
+                    </span>
+                    <ChevronDown className={cn("w-3.5 h-3.5 text-muted-foreground transition-transform", isUserOpen && "rotate-180")} />
+                  </button>
 
-                    <MenuItem icon={User} label="Profile" href="/profile" />
-                    <MenuItem icon={Settings} label="Settings" href="/settings" />
-                    {user.role === "admin" && (
-                      <MenuItem icon={LayoutDashboard} label="Admin" href="/admin" />
+                  <AnimatePresence>
+                    {isUserOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 mt-2 w-56 glass-card p-1 shadow-glass-lg"
+                        onMouseLeave={() => setIsUserOpen(false)}
+                      >
+                        <div className="px-3 py-2 border-b border-white/10 mb-1">
+                          <div className="text-sm font-medium text-white">{user.name}</div>
+                          <div className="text-xs text-muted-foreground">{user.email}</div>
+                        </div>
+                        <MenuItem icon={User} label="Profile" href="/profile" />
+                        <MenuItem icon={Settings} label="Settings" href="/settings" />
+                        {user.role === "admin" && (
+                          <MenuItem icon={LayoutDashboard} label="Admin" href="/admin" />
+                        )}
+                        <div className="border-t border-white/10 mt-1 pt-1">
+                          <button
+                            onClick={() => { clearAuth(); setAuthUser(null); }}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                          >
+                            <LogOut className="w-4 h-4" />
+                            Sign Out
+                          </button>
+                        </div>
+                      </motion.div>
                     )}
-                    <div className="border-t border-white/10 mt-1 pt-1">
-                      <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-red-400 hover:bg-red-500/10 transition-colors">
-                        <LogOut className="w-4 h-4" />
-                        Sign Out
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                  </AnimatePresence>
+                </div>
+              </>
+            ) : (
+              <Link href="/auth">
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="flex items-center gap-2 px-4 py-1.5 rounded-lg btn-cyber text-sm font-semibold"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Sign In
+                </motion.button>
+              </Link>
+            )}
 
             {/* Mobile menu button */}
             <button
@@ -216,7 +240,7 @@ export function Navbar() {
       <BuyCreditsModal
         isOpen={isCreditsOpen}
         onClose={() => setIsCreditsOpen(false)}
-        currentCredits={user.credits}
+        currentCredits={user?.credits ?? 0}
       />
     </>
   );
