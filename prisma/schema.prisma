@@ -1,0 +1,200 @@
+// Prisma Schema for ForexPrecision RoboQuant - Cybabot Ultra
+// Database: SQLite for development (easily switchable to PostgreSQL for production)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User model with authentication and credit balance
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  passwordHash  String   @map("password_hash")
+  creditsBalance Int     @default(500) @map("credits_balance") // Free tier starts with 500
+  role          String   @default("user") // user, admin
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  creditTransactions CreditTransaction[]
+  strategies         Strategy[]
+  botListings        BotListing[]       @relation("SellerListings")
+  botPurchases       BotPurchase[]      @relation("BuyerPurchases")
+
+  @@map("users")
+}
+
+// Credit transaction history
+model CreditTransaction {
+  id               String   @id @default(cuid())
+  userId           String   @map("user_id")
+  amount           Int      // Positive for purchases, negative for usage
+  type             String   // purchase, usage, refund, marketplace_sale, marketplace_purchase
+  description      String?
+  stripeSessionId  String?  @map("stripe_session_id")
+  relatedStrategyId String? @map("related_strategy_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("credit_transactions")
+}
+
+// Strategy model - stores user-created trading strategies
+model Strategy {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  name            String
+  description     String?
+  
+  // Strategy configuration
+  config          String   @default("{}") // JSON string of strategy parameters
+  
+  // Input data
+  inputType       String   @map("input_type") // text, image, pdf, url
+  inputData       String?  @map("input_data") // Original input content or reference
+  
+  // LLM configuration
+  llmProvider     String   @map("llm_provider") // grok, claude, deepseek, gemini, ollama
+  llmModel        String   @map("llm_model")
+  
+  // Backtest results
+  backtestResults String?  @map("backtest_results") // JSON string of backtest metrics
+  equityCurve     String?  @map("equity_curve") // JSON array of equity points
+  
+  // Status tracking
+  status          String   @default("pending") // pending, processing, completed, failed
+  progress        Int      @default(0) // 0-100
+  errorMessage    String?  @map("error_message")
+  
+  // Export files (stored as JSON with file paths or base64)
+  exports         String?  @default("{}") // JSON object with export file data
+  
+  // Metadata
+  buildType       String   @map("build_type") // quick, standard, full
+  creditsCost     Int      @map("credits_cost")
+  
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  botListing  BotListing?
+
+  @@index([userId])
+  @@index([status])
+  @@map("strategies")
+}
+
+// Bot marketplace listings
+model BotListing {
+  id              String   @id @default(cuid())
+  sellerId        String   @map("seller_id")
+  strategyId      String   @unique @map("strategy_id")
+  
+  // Listing details
+  title           String
+  description     String
+  category        String   // scalping, swing, trend_following, mean_reversion, grid, arbitrage
+  
+  // Pricing
+  priceCredits    Int      @map("price_credits")
+  priceUsd        Float?   @map("price_usd") // Optional USD pricing via Stripe
+  
+  // Performance highlights (from backtest)
+  sharpeRatio     Float?   @map("sharpe_ratio")
+  maxDrawdown     Float?   @map("max_drawdown")
+  winRate         Float?   @map("win_rate")
+  totalReturn     Float?   @map("total_return")
+  
+  // Marketplace metadata
+  salesCount      Int      @default(0) @map("sales_count")
+  rating          Float?   @default(0)
+  reviewCount     Int      @default(0) @map("review_count")
+  featured        Boolean  @default(false)
+  active          Boolean  @default(true)
+  
+  // Images
+  thumbnailUrl    String?  @map("thumbnail_url")
+  equityCurveUrl  String?  @map("equity_curve_url")
+  
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  seller    User          @relation("SellerListings", fields: [sellerId], references: [id], onDelete: Cascade)
+  strategy  Strategy      @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  purchases BotPurchase[]
+  reviews   BotReview[]
+
+  @@index([sellerId])
+  @@index([category])
+  @@index([active])
+  @@index([featured])
+  @@map("bot_listings")
+}
+
+// Bot purchase records
+model BotPurchase {
+  id            String   @id @default(cuid())
+  buyerId       String   @map("buyer_id")
+  listingId     String   @map("listing_id")
+  
+  // Payment details
+  creditsPaid   Int      @map("credits_paid")
+  usdPaid       Float?   @map("usd_paid")
+  stripeSessionId String? @map("stripe_session_id")
+  
+  // Commission (20% platform fee)
+  platformFee   Int      @map("platform_fee")
+  sellerEarnings Int     @map("seller_earnings")
+  
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  // Relations
+  buyer   User       @relation("BuyerPurchases", fields: [buyerId], references: [id], onDelete: Cascade)
+  listing BotListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([buyerId])
+  @@index([listingId])
+  @@map("bot_purchases")
+}
+
+// Bot reviews and ratings
+model BotReview {
+  id        String   @id @default(cuid())
+  listingId String   @map("listing_id")
+  userId    String   @map("user_id")
+  
+  rating    Int      // 1-5 stars
+  comment   String?
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  listing BotListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, userId]) // One review per user per listing
+  @@index([listingId])
+  @@map("bot_reviews")
+}
+
+// Admin settings and configuration
+model AdminSettings {
+  id                    String   @id @default(cuid())
+  key                   String   @unique
+  value                 String
+  description           String?
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@map("admin_settings")
+}

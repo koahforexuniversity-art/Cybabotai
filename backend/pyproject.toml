@@ -1,0 +1,98 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cybabot-backend"
+version = "1.0.0"
+description = "ForexPrecision RoboQuant - Cybabot Ultra Backend"
+requires-python = ">=3.12"
+dependencies = [
+    # FastAPI + ASGI
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "python-multipart>=0.0.12",
+    "websockets>=13.0",
+    
+    # Database
+    "sqlalchemy>=2.0.36",
+    "alembic>=1.14.0",
+    "aiosqlite>=0.20.0",
+    
+    # Auth
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "python-dotenv>=1.0.1",
+    
+    # Pydantic
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.6.0",
+    
+    # HTTP Client
+    "httpx>=0.28.0",
+    "aiohttp>=3.11.0",
+    
+    # Stripe
+    "stripe>=11.0.0",
+    
+    # AI / LLM
+    "crewai>=0.86.0",
+    "langchain>=0.3.0",
+    "langchain-anthropic>=0.3.0",
+    "langchain-google-genai>=2.0.0",
+    "langchain-openai>=0.2.0",  # For DeepSeek (OpenAI-compatible)
+    "anthropic>=0.40.0",
+    "openai>=1.57.0",
+    "google-generativeai>=0.8.0",
+    
+    # Data Processing
+    "duckdb>=1.1.0",
+    "pandas>=2.2.0",
+    "numpy>=2.1.0",
+    
+    # PDF / Image Processing
+    "pypdf2>=3.0.0",
+    "pillow>=11.0.0",
+    "pytesseract>=0.3.13",
+    
+    # URL Processing
+    "beautifulsoup4>=4.12.0",
+    "lxml>=5.3.0",
+    
+    # Export Generation
+    "jinja2>=3.1.4",
+    "reportlab>=4.2.0",
+    "nbformat>=5.10.0",
+    
+    # Utilities
+    "python-dateutil>=2.9.0",
+    "pytz>=2024.2",
+    "structlog>=24.4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "httpx>=0.28.0",
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

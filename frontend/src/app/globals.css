@@ -1,0 +1,363 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========================================
+   CSS Custom Properties — Cyber Dark Theme
+   ======================================== */
+@layer base {
+  :root {
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 20% 98%;
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 20% 98%;
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 174 100% 40%;
+    --primary-foreground: 144 100% 4%;
+    --secondary: 215 27.9% 16.9%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 215 27.9% 16.9%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+    --accent: 215 27.9% 16.9%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 72.2% 50.6%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+    --ring: 174 100% 40%;
+    --radius: 0.75rem;
+  }
+
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(14, 184, 166, 0.15), transparent),
+      linear-gradient(to bottom, #050d1a 0%, #0a0a0f 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(14, 184, 166, 0.4);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(14, 184, 166, 0.7);
+  }
+
+  /* Selection */
+  ::selection {
+    background: rgba(14, 184, 166, 0.3);
+    color: #fff;
+  }
+}
+
+/* ========================================
+   Glassmorphism Components
+   ======================================== */
+@layer components {
+  .glass {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-card {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0.02) 100%
+    );
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  }
+
+  .glass-card:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.04) 100%
+    );
+    border-color: rgba(14, 184, 166, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(14, 184, 166, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  /* Neon glow text */
+  .neon-text-cyan {
+    color: #00ffff;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8), 0 0 20px rgba(0, 255, 255, 0.5),
+      0 0 40px rgba(0, 255, 255, 0.3);
+  }
+
+  .neon-text-green {
+    color: #00ff88;
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.8), 0 0 20px rgba(0, 255, 136, 0.5),
+      0 0 40px rgba(0, 255, 136, 0.3);
+  }
+
+  .neon-text-purple {
+    color: #bf00ff;
+    text-shadow: 0 0 10px rgba(191, 0, 255, 0.8), 0 0 20px rgba(191, 0, 255, 0.5),
+      0 0 40px rgba(191, 0, 255, 0.3);
+  }
+
+  /* Neon border */
+  .neon-border-cyan {
+    border: 1px solid rgba(0, 255, 255, 0.4);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.2), inset 0 0 10px rgba(0, 255, 255, 0.05);
+  }
+
+  .neon-border-green {
+    border: 1px solid rgba(0, 255, 136, 0.4);
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.2), inset 0 0 10px rgba(0, 255, 136, 0.05);
+  }
+
+  .neon-border-purple {
+    border: 1px solid rgba(191, 0, 255, 0.4);
+    box-shadow: 0 0 10px rgba(191, 0, 255, 0.2), inset 0 0 10px rgba(191, 0, 255, 0.05);
+  }
+
+  /* Gradient text */
+  .gradient-text-cyber {
+    background: linear-gradient(135deg, #00ffff, #00ff88, #14b8a6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text-neon {
+    background: linear-gradient(135deg, #bf00ff, #00ffff, #00ff88);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradient-x 4s ease infinite;
+    background-size: 200% 200%;
+  }
+
+  /* Grid background */
+  .cyber-grid {
+    background-image:
+      linear-gradient(rgba(14, 184, 166, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(14, 184, 166, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* Agent card states */
+  .agent-idle {
+    @apply opacity-40;
+    filter: grayscale(80%);
+  }
+
+  .agent-active {
+    @apply opacity-100;
+    animation: pulse_glow 2s infinite;
+    --glow-color: rgba(14, 184, 166, 0.6);
+  }
+
+  .agent-success {
+    @apply opacity-100;
+    border-color: rgba(0, 255, 136, 0.5);
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+  }
+
+  .agent-error {
+    @apply opacity-100;
+    border-color: rgba(255, 60, 60, 0.5);
+    box-shadow: 0 0 20px rgba(255, 60, 60, 0.2);
+  }
+
+  /* Button styles */
+  .btn-cyber {
+    background: linear-gradient(135deg, #0d9488, #14b8a6);
+    color: #fff;
+    border: 1px solid rgba(20, 184, 166, 0.5);
+    box-shadow: 0 0 20px rgba(14, 184, 166, 0.3);
+    transition: all 0.2s ease;
+  }
+
+  .btn-cyber:hover {
+    background: linear-gradient(135deg, #14b8a6, #2dd4bf);
+    box-shadow: 0 0 30px rgba(14, 184, 166, 0.5), 0 0 60px rgba(14, 184, 166, 0.2);
+    transform: translateY(-1px);
+  }
+
+  .btn-cyber:active {
+    transform: translateY(0px);
+  }
+
+  /* Scan line effect */
+  .scanlines::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.05) 2px,
+      rgba(0, 0, 0, 0.05) 4px
+    );
+    pointer-events: none;
+  }
+
+  /* Terminal text */
+  .terminal-text {
+    font-family: var(--font-geist-mono), monospace;
+    color: #00ff88;
+    text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+  }
+
+  /* Progress bar cyber */
+  .progress-cyber {
+    background: linear-gradient(90deg, #14b8a6, #00ffff);
+    box-shadow: 0 0 10px rgba(14, 184, 166, 0.5);
+  }
+
+  /* Badge styles */
+  .badge-cyber {
+    background: rgba(14, 184, 166, 0.15);
+    border: 1px solid rgba(14, 184, 166, 0.4);
+    color: #2dd4bf;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* Loading skeleton */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.04) 25%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0.04) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+}
+
+/* ========================================
+   Custom Utilities
+   ======================================== */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+
+  /* Frosted glass overlay */
+  .frosted {
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    background-color: rgba(10, 10, 15, 0.75);
+  }
+
+  /* Clip paths for shapes */
+  .clip-hex {
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  }
+
+  /* Smooth image rendering */
+  .img-render {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* ========================================
+   Chart.js overrides
+   ======================================== */
+.chartjs-render-monitor {
+  animation: none !important;
+}
+
+/* ========================================
+   Framer Motion global utilities
+   ======================================== */
+.will-change-transform {
+  will-change: transform;
+}
+
+/* ========================================
+   Typewriter cursor
+   ======================================== */
+.typewriter-cursor::after {
+  content: "▋";
+  animation: blink 1s step-end infinite;
+  color: #14b8a6;
+}
+
+/* ========================================
+   Custom range slider
+   ======================================== */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-track {
+  background: rgba(255, 255, 255, 0.1);
+  height: 4px;
+  border-radius: 999px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #14b8a6;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(14, 184, 166, 0.5);
+  margin-top: -6px;
+}

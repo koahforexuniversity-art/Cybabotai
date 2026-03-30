@@ -1,0 +1,84 @@
+version: "3.9"
+
+services:
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cybabot-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=file:./dev.db
+      - XAI_API_KEY=${XAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - JWT_SECRET=${JWT_SECRET}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - CORS_ORIGINS=http://localhost:3000
+    volumes:
+      - ./backend:/app
+      - ./data:/app/data
+      - ./exports:/app/exports
+      - backend_db:/app/db
+    depends_on:
+      - ollama
+    restart: unless-stopped
+    networks:
+      - cybabot-network
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cybabot-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+      - NEXT_PUBLIC_BACKEND_WS_URL=${NEXT_PUBLIC_BACKEND_WS_URL:-ws://localhost:8000}
+      - BACKEND_URL=http://backend:8000
+      - DATABASE_URL=file:./dev.db
+    volumes:
+      - ./prisma:/app/prisma
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - cybabot-network
+
+  # Ollama for local LLM inference
+  ollama:
+    image: ollama/ollama:latest
+    container_name: cybabot-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    restart: unless-stopped
+    networks:
+      - cybabot-network
+    # Uncomment for GPU support:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+volumes:
+  backend_db:
+  ollama_models:
+
+networks:
+  cybabot-network:
+    driver: bridge
