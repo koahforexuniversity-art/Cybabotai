@@ -1,12 +1,12 @@
 // Prisma Schema for ForexPrecision RoboQuant - Cybabot Ultra
-// Database: SQLite for development (easily switchable to PostgreSQL for production)
+// Database: PostgreSQL (Supabase)
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
