@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useInView } from "framer-motion";
-import { Bot, ArrowRight, Zap, Play, ChevronDown } from "lucide-react";
+import { Bot, ArrowRight, Zap, Play, ChevronDown, UserPlus } from "lucide-react";
 import { AGENT_CONFIGS } from "@/types/agent";
 
 const TYPEWRITER_STRINGS = [
@@ -171,26 +171,26 @@ export function HeroSection() {
           transition={{ delay: 0.5 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
         >
-          <Link href="/builder">
+          <Link href="/auth?mode=register">
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               className="btn-cyber px-8 py-3.5 rounded-xl font-semibold flex items-center gap-2 text-base"
             >
-              <Bot className="w-5 h-5" />
-              Build with Cybabot
+              <UserPlus className="w-5 h-5" />
+              Sign Up Free
               <ArrowRight className="w-4 h-4" />
             </motion.button>
           </Link>
 
-          <Link href="/marketplace">
+          <Link href="/builder">
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               className="px-8 py-3.5 rounded-xl font-semibold flex items-center gap-2 text-base glass border border-white/15 text-white/80 hover:text-white hover:border-white/30 transition-all"
             >
-              <Play className="w-4 h-4" fill="currentColor" />
-              Browse Marketplace
+              <Bot className="w-4 h-4" />
+              Start Building
             </motion.button>
           </Link>
         </motion.div>

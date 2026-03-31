@@ -36,10 +36,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS middleware
+# CORS middleware — allow_origin_regex covers all origins when CORS_ORIGINS=*
+_origins = settings.cors_origins_list
+_allow_all = _origins == ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
+    allow_origins=[] if _allow_all else _origins,
+    allow_origin_regex=r".*" if _allow_all else None,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

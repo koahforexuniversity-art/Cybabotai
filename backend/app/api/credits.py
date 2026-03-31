@@ -1,35 +1,27 @@
 """Credit management API endpoints."""
 
-from fastapi import APIRouter, HTTPException, status, Request
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
 from app.deps import DBSession, CurrentUser
 from app.services.credit_service import CreditService
-from app.services.stripe_service import StripeService, CREDIT_PACKS
+from app.services.paystack_service import paystack_service, CREDIT_PACKS
+from app.config import get_settings
 
 router = APIRouter(prefix="/credits", tags=["credits"])
 credit_service = CreditService()
-stripe_service = StripeService()
+settings = get_settings()
 
 
 class CheckoutRequest(BaseModel):
     pack_id: str
-    success_url: str
-    cancel_url: str
+    callback_url: str
 
 
 class CheckoutResponse(BaseModel):
-    session_id: str
-    url: str
+    authorization_url: str
+    reference: str
     pack: dict
-
-
-class TransactionResponse(BaseModel):
-    id: str
-    amount: int
-    type: str
-    description: str | None
-    created_at: str
 
 
 @router.get("/balance")
@@ -44,7 +36,10 @@ async def get_balance(current_user: CurrentUser) -> dict:
 @router.get("/packs")
 async def get_credit_packs() -> dict:
     """Get available credit packs for purchase."""
-    return {"packs": CREDIT_PACKS}
+    return {
+        "packs": CREDIT_PACKS,
+        "paystack_public_key": settings.paystack_public_key,
+    }
 
 
 @router.post("/checkout", response_model=CheckoutResponse)
@@ -52,7 +47,13 @@ async def create_checkout(
     request: CheckoutRequest,
     current_user: CurrentUser,
 ) -> CheckoutResponse:
-    """Create a Stripe checkout session for credit purchase."""
+    """Initialize a Paystack transaction for credit purchase."""
+    if not paystack_service.is_configured():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Payment service not configured. Add PAYSTACK_SECRET_KEY to backend .env",
+        )
+
     if request.pack_id not in CREDIT_PACKS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -60,43 +61,43 @@ async def create_checkout(
         )
 
     try:
-        session = stripe_service.create_checkout_session(
+        result = await paystack_service.initialize_transaction(
             user_id=current_user.id,
             user_email=current_user.email,
             pack_id=request.pack_id,
-            success_url=request.success_url,
-            cancel_url=request.cancel_url,
+            callback_url=request.callback_url,
         )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create checkout session: {str(e)}",
+            detail=f"Payment initialization failed: {str(e)}",
         ) from e
 
     return CheckoutResponse(
-        session_id=session["session_id"],
-        url=session["url"],
-        pack=session["pack"],
+        authorization_url=result["authorization_url"],
+        reference=result["reference"],
+        pack=result["pack"],
     )
 
 
-@router.post("/webhook")
-async def stripe_webhook(request: Request, db: DBSession) -> dict:
-    """Handle Stripe webhook events."""
-    payload = await request.body()
-    signature = request.headers.get("stripe-signature", "")
-
+@router.get("/verify")
+async def verify_payment(
+    reference: str,
+    db: DBSession,
+) -> dict:
+    """Verify a Paystack payment and credit the user. Called after Paystack redirect."""
     try:
-        result = await stripe_service.handle_webhook(
-            payload=payload,
-            signature=signature,
-            db=db,
-        )
+        result = await paystack_service.verify_transaction(reference=reference, db=db)
         return result
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
+        ) from e
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Verification failed: {str(e)}",
         ) from e
 
 

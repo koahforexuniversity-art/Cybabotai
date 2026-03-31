@@ -12,6 +12,7 @@ import { AgentCrewPanel } from "@/components/builder/AgentCrewPanel";
 import type { AgentStatus } from "@/components/builder/AgentCard";
 import type { AgentStreamMessage } from "@/hooks/useWebSocket";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import { getToken, refreshUser } from "@/lib/auth";
 
 const LLM_PROVIDERS = [
   { id: "claude", name: "Claude (Anthropic)", models: ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022"], badge: "Best" },
@@ -41,6 +42,7 @@ export default function BuilderPage() {
 
   // Build state
   const [isBuilding, setIsBuilding] = useState(false);
+  const [buildError, setBuildError] = useState<string | null>(null);
   const [strategyId, setStrategyId] = useState<string | null>(null);
   const [buildComplete, setBuildComplete] = useState(false);
 
@@ -99,11 +101,24 @@ export default function BuilderPage() {
       if (data?.exports) {
         setExports(data.exports as Record<string, string>);
       }
+      // Refresh credits after crew finishes
+      refreshUser();
+    }
+
+    if (type === "crew_error") {
+      setIsBuilding(false);
+      // Mark all active agents as error
+      setAgentStatuses((prev) => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach((k) => {
+          if (updated[Number(k)] === "active") updated[Number(k)] = "error";
+        });
+        return updated;
+      });
     }
   }, []);
 
-  // Get auth token from localStorage
-  const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+  const token = getToken();
 
   // WebSocket connection
   useWebSocket({
@@ -119,6 +134,7 @@ export default function BuilderPage() {
     if (!strategyName) return;
 
     setIsBuilding(true);
+    setBuildError(null);
     setBuildComplete(false);
     setEquityCurve([]);
     setRadarData(null);
@@ -131,7 +147,7 @@ export default function BuilderPage() {
     setAgentProgress({});
 
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "/api/backend";
       const response = await fetch(`${backendUrl}/api/v1/cybabot/build`, {
         method: "POST",
         headers: {
@@ -149,13 +165,17 @@ export default function BuilderPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to start build");
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.detail || "Failed to start build");
       }
 
       const data = await response.json();
       setStrategyId(data.id);
+      // Refresh credit balance immediately after deduction
+      refreshUser();
     } catch (error) {
       console.error("Build failed:", error);
+      setBuildError(error instanceof Error ? error.message : "Build failed");
       setIsBuilding(false);
     }
   };
@@ -337,6 +357,13 @@ Example: 'I want a strategy that trades EURUSD on the 1-hour chart using EMA cro
                 ))}
               </div>
             </div>
+
+            {/* Build Error */}
+            {buildError && (
+              <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                {buildError}
+              </div>
+            )}
 
             {/* Start Build Button */}
             <button

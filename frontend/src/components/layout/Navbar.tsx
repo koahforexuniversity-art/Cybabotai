@@ -11,7 +11,7 @@ import {
 import { CreditBadge } from "@/components/credits/CreditBadge";
 import { BuyCreditsModal } from "@/components/credits/BuyCreditsModal";
 import { cn } from "@/lib/utils";
-import { getUser, clearAuth, type AuthUser } from "@/lib/auth";
+import { getUser, clearAuth, refreshUser, type AuthUser } from "@/lib/auth";
 
 const NAV_ITEMS = [
   { href: "/builder", label: "Builder", icon: Bot, description: "Build forex bots with Cybabot" },
@@ -29,7 +29,18 @@ export function Navbar() {
 
   useEffect(() => {
     setAuthUser(getUser());
+    // Refresh live balance from server on each navigation
+    refreshUser().then((u) => { if (u) setAuthUser(u); });
   }, [pathname]);
+
+  // Poll credit balance every 30s while logged in
+  useEffect(() => {
+    if (!authUser) return;
+    const interval = setInterval(() => {
+      refreshUser().then((u) => { if (u) setAuthUser(u); });
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [!!authUser]);
 
   const user = authUser
     ? { name: authUser.name || authUser.email, email: authUser.email, credits: authUser.credits_balance, role: authUser.role }
@@ -73,10 +84,10 @@ export function Navbar() {
             </motion.div>
             <div className="hidden sm:block">
               <div className="text-sm font-bold text-white leading-none">
-                Forex<span className="gradient-text-cyber">Precision</span>
+                Cyba<span className="gradient-text-cyber">bot</span>
               </div>
               <div className="text-xs text-muted-foreground leading-none mt-0.5">
-                RoboQuant
+                Ultra
               </div>
             </div>
           </Link>

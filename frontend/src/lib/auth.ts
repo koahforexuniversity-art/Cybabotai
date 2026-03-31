@@ -1,4 +1,4 @@
-const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "/api/backend";
 const TOKEN_KEY = "auth_token";
 const USER_KEY = "auth_user";
 
@@ -54,4 +54,20 @@ export async function apiLogin(email: string, password: string) {
   if (!res.ok) throw new Error(data.detail || "Login failed");
   saveAuth(data.access_token, data.user);
   return data;
+}
+
+export async function refreshUser(): Promise<AuthUser | null> {
+  const token = getToken();
+  if (!token) return null;
+  try {
+    const res = await fetch(`${BACKEND}/api/v1/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return null;
+    const user: AuthUser = await res.json();
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    return user;
+  } catch {
+    return null;
+  }
 }

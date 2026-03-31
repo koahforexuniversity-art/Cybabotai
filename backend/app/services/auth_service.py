@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta
 from typing import Any
 import cuid
+import hashlib
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,20 +14,24 @@ from app.models.user import User
 
 settings = get_settings()
 
-# Password hashing context
+# Password hashing context (bcrypt 4.0.1 required — 5.x is incompatible with passlib)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class AuthService:
     """Service for authentication operations."""
 
+    def _prepare(self, password: str) -> str:
+        """SHA-256 pre-hash so passwords up to 256 chars work with bcrypt's 72-byte limit."""
+        return hashlib.sha256(password.encode("utf-8")).hexdigest()
+
     def hash_password(self, password: str) -> str:
         """Hash a plain text password."""
-        return pwd_context.hash(password)
+        return pwd_context.hash(self._prepare(password))
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         """Verify a plain text password against a hash."""
-        return pwd_context.verify(plain_password, hashed_password)
+        return pwd_context.verify(self._prepare(plain_password), hashed_password)
 
     def create_access_token(self, user_id: str, email: str, role: str) -> str:
         """Create a JWT access token."""

@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     # Server
     host: str = "0.0.0.0"
     port: int = 8000
-    cors_origins: str = "http://localhost:3000"
+    cors_origins: str = "*"
 
     # Database
     database_url: str = "sqlite+aiosqlite:///./dev.db"
@@ -37,14 +37,14 @@ class Settings(BaseSettings):
     # LLM Providers
     xai_api_key: Optional[str] = None
     anthropic_api_key: Optional[str] = None
+    openai_api_key: Optional[str] = None
     deepseek_api_key: Optional[str] = None
     google_api_key: Optional[str] = None
     ollama_base_url: str = "http://localhost:11434"
 
-    # Stripe
-    stripe_secret_key: Optional[str] = None
-    stripe_webhook_secret: Optional[str] = None
-    next_public_stripe_publishable_key: Optional[str] = None
+    # Paystack
+    paystack_secret_key: Optional[str] = None
+    paystack_public_key: Optional[str] = None
 
     # Admin
     admin_email: str = "admin@example.com"

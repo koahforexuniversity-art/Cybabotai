@@ -6,7 +6,6 @@ RUN apt-get update && apt-get install -y \
     gcc g++ libpq-dev tesseract-ocr tesseract-ocr-eng \
     && rm -rf /var/lib/apt/lists/*
 
-# Install deps directly (avoids hatchling build issues)
 RUN pip install --no-cache-dir \
     fastapi "uvicorn[standard]" sqlalchemy aiosqlite \
     "python-jose[cryptography]" "passlib[bcrypt]" "bcrypt==4.0.1" \
@@ -19,9 +18,15 @@ RUN pip install --no-cache-dir \
     pypdf2 pillow beautifulsoup4 lxml reportlab \
     websockets python-dotenv
 
-COPY . .
+# Copy backend app and ai crew module
+COPY backend/ ./backend/
+COPY ai/ ./ai/
 
-RUN mkdir -p /app/data /app/exports /app/db
+WORKDIR /app/backend
+
+RUN mkdir -p /app/backend/db /app/backend/data /app/backend/exports
+
+ENV PYTHONPATH=/app/backend:/app
 
 EXPOSE 8000
 

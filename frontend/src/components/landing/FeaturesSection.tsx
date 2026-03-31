@@ -94,7 +94,7 @@ export function FeaturesSection() {
             <span className="gradient-text-cyber">Trade Algorithmically</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            ForexPrecision RoboQuant combines institutional-grade backtesting
+            Cybabot combines institutional-grade backtesting
             with cutting-edge AI to deliver production-ready trading bots.
           </p>
         </motion.div>

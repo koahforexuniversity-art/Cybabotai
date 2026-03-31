@@ -21,7 +21,7 @@ export function useCredits(initialBalance: number = 0) {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"}/api/v1/credits/balance`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL || "/api/backend"}/api/v1/credits/balance`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

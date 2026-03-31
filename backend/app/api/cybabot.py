@@ -46,6 +46,22 @@ async def start_build(
     background_tasks: BackgroundTasks,
 ) -> StrategyResponse:
     """Start a new strategy build."""
+    from ai.cybabot.llm_router import llm_router
+
+    # Pre-flight: validate LLM provider key before deducting credits
+    if not llm_router._check_provider_key(request.llm_provider):
+        provider_key_map = {
+            "claude": "ANTHROPIC_API_KEY",
+            "grok": "XAI_API_KEY",
+            "deepseek": "DEEPSEEK_API_KEY",
+            "gemini": "GOOGLE_API_KEY",
+        }
+        key_name = provider_key_map.get(request.llm_provider, f"{request.llm_provider.upper()}_API_KEY")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"{key_name} is not configured on the server. Add it to the backend .env file.",
+        )
+
     # Calculate credit cost
     credits_cost = credit_service.get_build_cost(request.build_type)
 

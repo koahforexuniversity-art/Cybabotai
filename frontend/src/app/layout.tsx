@@ -7,8 +7,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "ForexPrecision RoboQuant — Cybabot Ultra",
-    template: "%s | RoboQuant",
+    default: "Cybabot — AI Forex Bot Builder",
+    template: "%s | Cybabot",
   },
   description:
     "Build production-ready forex trading bots in minutes with Cybabot Ultra — a 7-agent AI crew powered by CrewAI. Backtest with tick-level precision, export to MQL5 & PineScript.",
@@ -21,21 +21,20 @@ export const metadata: Metadata = {
     "PineScript",
     "trading AI",
     "cybabot",
-    "roboquant",
   ],
-  authors: [{ name: "RoboQuant Team" }],
-  creator: "RoboQuant",
+  authors: [{ name: "Cybabot Team" }],
+  creator: "Cybabot",
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://roboquant.dev",
-    title: "ForexPrecision RoboQuant — Cybabot Ultra",
+    url: "https://cybabotai.com",
+    title: "Cybabot — AI Forex Bot Builder",
     description: "AI-powered forex bot builder with 7-agent CrewAI pipeline",
-    siteName: "RoboQuant",
+    siteName: "Cybabot",
   },
   twitter: {
     card: "summary_large_image",
-    title: "ForexPrecision RoboQuant",
+    title: "Cybabot Ultra",
     description: "Build production-ready forex bots with AI in minutes",
   },
   robots: {
@@ -65,7 +64,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       className={`${GeistSans.variable} ${GeistMono.variable} dark`}
       suppressHydrationWarning
     >
-      <body className="min-h-screen bg-background font-sans antialiased">
+      <body className="min-h-screen bg-background font-sans antialiased" suppressHydrationWarning>
         {/* Cyber background effects */}
         <div className="fixed inset-0 cyber-grid opacity-30 pointer-events-none -z-10" />
         <div className="fixed inset-0 bg-glow-gradient pointer-events-none -z-10" />
